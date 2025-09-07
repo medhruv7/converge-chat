@@ -1,0 +1,17 @@
+overwrite: true
+schema:
+  - "http://localhost:3000/graphql"  # User service
+  - "http://localhost:3002/graphql"  # Chat service
+documents: "src/**/*.graphql"
+generates:
+  src/generated/graphql.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-react-apollo"
+    config:
+      withHooks: true
+      withComponent: false
+      withHOC: false
+      skipTypename: false
+      withRefetchFn: true

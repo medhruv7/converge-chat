@@ -1,0 +1,70 @@
+# User Mutations
+mutation CreateUser($input: CreateUserInput!) {
+  createUser(input: $input) {
+    id
+    email
+    firstName
+    lastName
+    phoneNumber
+    isActive
+    createdAt
+    updatedAt
+  }
+}
+
+# Chat Mutations
+mutation CreateChat($input: CreateChatInput!) {
+  createChat(input: $input) {
+    id
+    name
+    description
+    participants {
+      id
+      email
+      firstName
+      lastName
+      phoneNumber
+      isActive
+      createdAt
+      updatedAt
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+mutation JoinChat($input: JoinChatInput!) {
+  joinChat(input: $input) {
+    id
+    name
+    description
+    participants {
+      id
+      email
+      firstName
+      lastName
+      phoneNumber
+      isActive
+      createdAt
+      updatedAt
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+mutation SendMessage($input: SendMessageInput!) {
+  sendMessage(input: $input) {
+    id
+    content
+    sender {
+      id
+      firstName
+      lastName
+    }
+    chatId
+    sequenceNumber
+    createdAt
+    updatedAt
+  }
+}

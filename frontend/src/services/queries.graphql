@@ -1,0 +1,159 @@
+# User Queries
+query GetUsers {
+  users {
+    id
+    email
+    firstName
+    lastName
+    phoneNumber
+    isActive
+    createdAt
+    updatedAt
+  }
+}
+
+query GetUser($id: ID!) {
+  user(id: $id) {
+    id
+    email
+    firstName
+    lastName
+    phoneNumber
+    isActive
+    createdAt
+    updatedAt
+  }
+}
+
+query GetActiveUsers {
+  activeUsers {
+    id
+    email
+    firstName
+    lastName
+    phoneNumber
+    isActive
+    createdAt
+    updatedAt
+  }
+}
+
+# Chat Queries
+query GetUserChats($userId: ID!) {
+  userChats(userId: $userId) {
+    id
+    name
+    description
+    type
+    participants {
+      id
+      email
+      firstName
+      lastName
+      phoneNumber
+      isActive
+      createdAt
+      updatedAt
+    }
+    messages {
+      id
+      content
+      sender {
+        id
+        email
+        firstName
+        lastName
+        phoneNumber
+        isActive
+        createdAt
+        updatedAt
+      }
+      chatId
+      sequenceNumber
+      createdAt
+      updatedAt
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+query GetChat($chatId: ID!, $userId: ID!) {
+  chat(chatId: $chatId, userId: $userId) {
+    id
+    name
+    description
+    participants {
+      id
+      email
+      firstName
+      lastName
+      phoneNumber
+      isActive
+      createdAt
+      updatedAt
+    }
+    messages {
+      id
+      content
+      sender {
+        id
+        email
+        firstName
+        lastName
+        phoneNumber
+        isActive
+        createdAt
+        updatedAt
+      }
+      chatId
+      sequenceNumber
+      createdAt
+      updatedAt
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+query GetChatMessages($chatId: ID!, $userId: ID!, $limit: Float, $offset: Float) {
+  chatMessages(chatId: $chatId, userId: $userId, limit: $limit, offset: $offset) {
+    id
+    content
+    sender {
+      id
+      email
+      firstName
+      lastName
+      phoneNumber
+      isActive
+      createdAt
+      updatedAt
+    }
+    chatId
+    sequenceNumber
+    createdAt
+    updatedAt
+  }
+}
+
+query GetRecentMessages($chatId: ID!, $limit: Float) {
+  recentMessages(chatId: $chatId, limit: $limit) {
+    id
+    content
+    sender {
+      id
+      email
+      firstName
+      lastName
+      phoneNumber
+      isActive
+      createdAt
+      updatedAt
+    }
+    chatId
+    sequenceNumber
+    createdAt
+    updatedAt
+  }
+}

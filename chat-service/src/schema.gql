@@ -1,0 +1,75 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Chat {
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  messages: [Message!]!
+  name: String!
+  participants: [User!]!
+  type: String!
+  updatedAt: DateTime!
+}
+
+input CreateChatInput {
+  description: String
+  name: String!
+  participantIds: [String!]!
+  type: String! = "group"
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+input JoinChatInput {
+  chatId: String!
+  userId: String!
+}
+
+type Message {
+  chatId: String!
+  content: String!
+  createdAt: DateTime!
+  id: ID!
+  sender: User
+  sequenceNumber: Float!
+  updatedAt: DateTime!
+}
+
+type Mutation {
+  createChat(input: CreateChatInput!): Chat!
+  joinChat(input: JoinChatInput!): Chat!
+  sendMessage(input: SendMessageInput!): Message!
+}
+
+type Query {
+  chat(chatId: ID!, userId: ID!): Chat
+  chatMessages(chatId: ID!, limit: Float! = 50, offset: Float! = 0, userId: ID!): [Message!]!
+  recentMessages(chatId: ID!, limit: Float! = 50): [Message!]!
+  userChats(userId: ID!): [Chat!]!
+}
+
+input SendMessageInput {
+  chatId: String!
+  content: String!
+  senderId: String!
+}
+
+type Subscription {
+  newMessage(chatId: ID!): Message!
+}
+
+type User {
+  createdAt: DateTime!
+  email: String!
+  firstName: String!
+  id: ID!
+  isActive: Boolean!
+  lastName: String!
+  phoneNumber: String!
+  updatedAt: DateTime!
+}

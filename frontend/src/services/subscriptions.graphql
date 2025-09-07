@@ -1,0 +1,16 @@
+# GraphQL Subscriptions
+subscription NewMessage($chatId: ID!) {
+  newMessage(chatId: $chatId) {
+    id
+    content
+    sender {
+      id
+      firstName
+      lastName
+    }
+    chatId
+    sequenceNumber
+    createdAt
+    updatedAt
+  }
+}
