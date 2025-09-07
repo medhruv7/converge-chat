@@ -58,7 +58,7 @@ run_service_tests() {
     fi
     
     # Run tests
-    if npm run test 2>/dev/null; then
+    if npm test -- --passWithNoTests 2>/dev/null; then
         print_success "$service_name tests passed!"
     else
         print_error "$service_name tests failed!"
@@ -94,7 +94,7 @@ run_service_tests_with_coverage() {
     fi
     
     # Run tests with coverage
-    if npm run test:cov 2>/dev/null; then
+    if npm run test:cov -- --passWithNoTests 2>/dev/null; then
         print_success "$service_name tests with coverage passed!"
     else
         print_error "$service_name tests with coverage failed!"

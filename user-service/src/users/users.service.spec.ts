@@ -16,6 +16,7 @@ describe('UsersService', () => {
     findOne: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    preload: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -153,17 +154,15 @@ describe('UsersService', () => {
       expect(result).toEqual(expectedUser);
     });
 
-    it('should return null if user not found', async () => {
+    it('should throw error if user not found', async () => {
       const userId = '999';
       mockRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.findOne(userId);
-
-      expect(result).toBeNull();
+      await expect(service.findOne(userId)).rejects.toThrow('User with ID 999 not found');
     });
   });
 
-  describe('findActiveUsers', () => {
+  describe('findActive', () => {
     it('should return only active users', async () => {
       const expectedUsers = [
         {
@@ -180,7 +179,7 @@ describe('UsersService', () => {
 
       mockRepository.find.mockResolvedValue(expectedUsers);
 
-      const result = await service.findActiveUsers();
+      const result = await service.findActive();
 
       expect(mockRepository.find).toHaveBeenCalledWith({
         where: { isActive: true },
@@ -198,37 +197,42 @@ describe('UsersService', () => {
         lastName: 'Name',
       };
 
-      const updatedUser = {
+      const existingUser = {
         id: userId,
         email: 'test@example.com',
-        ...updateData,
+        firstName: 'John',
+        lastName: 'Doe',
         phoneNumber: '+1234567890',
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      mockRepository.update.mockResolvedValue({ affected: 1 });
-      mockRepository.findOne.mockResolvedValue(updatedUser);
+      const updatedUser = {
+        ...existingUser,
+        ...updateData,
+        updatedAt: new Date(),
+      };
+
+      mockRepository.findOne.mockResolvedValue(existingUser);
+      mockRepository.save.mockResolvedValue(updatedUser);
 
       const result = await service.update(userId, updateData);
 
-      expect(mockRepository.update).toHaveBeenCalledWith(userId, updateData);
       expect(mockRepository.findOne).toHaveBeenCalledWith({
         where: { id: userId },
       });
+      expect(mockRepository.save).toHaveBeenCalledWith(updatedUser);
       expect(result).toEqual(updatedUser);
     });
 
-    it('should return null if user not found', async () => {
+    it('should throw error if user not found', async () => {
       const userId = '999';
       const updateData = { firstName: 'Updated' };
 
-      mockRepository.update.mockResolvedValue({ affected: 0 });
+      mockRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.update(userId, updateData);
-
-      expect(result).toBeNull();
+      await expect(service.update(userId, updateData)).rejects.toThrow('User with ID 999 not found');
     });
   });
 

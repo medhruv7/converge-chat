@@ -12,7 +12,7 @@ describe('UsersResolver', () => {
     create: jest.fn(),
     findAll: jest.fn(),
     findOne: jest.fn(),
-    findActiveUsers: jest.fn(),
+    findActive: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
   };
@@ -49,6 +49,7 @@ describe('UsersResolver', () => {
       const expectedUser: User = {
         id: '1',
         ...createUserInput,
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -62,7 +63,7 @@ describe('UsersResolver', () => {
     });
   });
 
-  describe('users', () => {
+  describe('getUsers', () => {
     it('should return all users', async () => {
       const expectedUsers: User[] = [
         {
@@ -89,14 +90,14 @@ describe('UsersResolver', () => {
 
       mockUsersService.findAll.mockResolvedValue(expectedUsers);
 
-      const result = await resolver.users();
+      const result = await resolver.getUsers();
 
       expect(mockUsersService.findAll).toHaveBeenCalled();
       expect(result).toEqual(expectedUsers);
     });
   });
 
-  describe('user', () => {
+  describe('getUser', () => {
     it('should return a user by id', async () => {
       const userId = '1';
       const expectedUser: User = {
@@ -112,7 +113,7 @@ describe('UsersResolver', () => {
 
       mockUsersService.findOne.mockResolvedValue(expectedUser);
 
-      const result = await resolver.user(userId);
+      const result = await resolver.getUser(userId);
 
       expect(mockUsersService.findOne).toHaveBeenCalledWith(userId);
       expect(result).toEqual(expectedUser);
@@ -122,13 +123,13 @@ describe('UsersResolver', () => {
       const userId = '999';
       mockUsersService.findOne.mockResolvedValue(null);
 
-      const result = await resolver.user(userId);
+      const result = await resolver.getUser(userId);
 
       expect(result).toBeNull();
     });
   });
 
-  describe('activeUsers', () => {
+  describe('getActiveUsers', () => {
     it('should return only active users', async () => {
       const expectedUsers: User[] = [
         {
@@ -143,11 +144,11 @@ describe('UsersResolver', () => {
         },
       ];
 
-      mockUsersService.findActiveUsers.mockResolvedValue(expectedUsers);
+      mockUsersService.findActive.mockResolvedValue(expectedUsers);
 
-      const result = await resolver.activeUsers();
+      const result = await resolver.getActiveUsers();
 
-      expect(mockUsersService.findActiveUsers).toHaveBeenCalled();
+      expect(mockUsersService.findActive).toHaveBeenCalled();
       expect(result).toEqual(expectedUsers);
     });
   });
