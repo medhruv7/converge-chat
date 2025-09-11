@@ -3,11 +3,7 @@ subscription NewMessage($chatId: ID!) {
   newMessage(chatId: $chatId) {
     id
     content
-    sender {
-      id
-      firstName
-      lastName
-    }
+    senderId
     chatId
     sequenceNumber
     createdAt

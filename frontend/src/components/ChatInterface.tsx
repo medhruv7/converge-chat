@@ -46,7 +46,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ chat, user }) => {
       }
     };
 
-    const handleChatHistory = (data: { chatId: string; messages: GraphQLMessage[] }) => {
+    const handleChatJoined = (data: { chatId: string; messages: GraphQLMessage[] }) => {
       if (data.chatId === chat.id) {
         setMessages(data.messages);
       }
@@ -57,13 +57,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ chat, user }) => {
     };
 
     webSocketService.on('new_message', handleNewMessage);
-    webSocketService.on('chat_history', handleChatHistory);
+    webSocketService.on('chat_joined', handleChatJoined);
     webSocketService.on('error', handleError);
 
     // Cleanup on unmount
     return () => {
       webSocketService.off('new_message', handleNewMessage);
-      webSocketService.off('chat_history', handleChatHistory);
+      webSocketService.off('chat_joined', handleChatJoined);
       webSocketService.off('error', handleError);
       webSocketService.leaveChat(chat.id, user.id);
     };
@@ -125,7 +125,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ chat, user }) => {
       <Paper elevation={1} sx={{ p: 2, borderRadius: 0, borderBottom: 1, borderColor: 'divider' }}>
         <Typography variant="h6">{chat.name}</Typography>
         <Typography variant="body2" color="text.secondary">
-          {chat.participants.length} participants
+          {chat.participantIds?.length || 0} participants
         </Typography>
       </Paper>
 
@@ -174,11 +174,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ chat, user }) => {
         ) : (
           <List sx={{ p: 0 }}>
             {messages.map((msg, index) => {
-              const isOwnMessage = msg.sender?.id === user.id;
+              const isOwnMessage = msg.senderId === user.id;
               const prevMessage = index > 0 ? messages[index - 1] : null;
-              const showAvatar = !prevMessage || prevMessage.sender?.id !== msg.sender?.id;
+              const showAvatar = !prevMessage || prevMessage.senderId !== msg.senderId;
               const nextMessage = index < messages.length - 1 ? messages[index + 1] : null;
-              const isLastInGroup = !nextMessage || nextMessage.sender?.id !== msg.sender?.id;
+              const isLastInGroup = !nextMessage || nextMessage.senderId !== msg.senderId;
 
               return (
                 <ListItem
@@ -208,7 +208,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ chat, user }) => {
                           bgcolor: isOwnMessage ? 'primary.main' : 'secondary.main',
                         }}
                       >
-                        {msg.sender ? getInitials(msg.sender.firstName, msg.sender.lastName) : '?'}
+                        {msg.senderId ? msg.senderId.substring(0, 2).toUpperCase() : '?'}
                       </Avatar>
                     ) : (
                       <Box sx={{ width: 32 }} />

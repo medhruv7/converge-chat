@@ -6,7 +6,8 @@ export interface WebSocketEvents {
   new_message: (message: Message) => void;
   user_joined: (data: { chatId: string; userId: string; message: string }) => void;
   user_left: (data: { chatId: string; userId: string; message: string }) => void;
-  chat_history: (data: { chatId: string; messages: Message[] }) => void;
+  chat_joined: (data: { chatId: string; messages: Message[] }) => void;
+  chat_created: (data: { chat: any }) => void;
   error: (error: { message: string }) => void;
   
   // Outgoing events
@@ -18,10 +19,12 @@ export interface WebSocketEvents {
 class WebSocketService {
   private socket: Socket | null = null;
   private isConnected = false;
+  private connectedInstance: string | null = null;
 
   connect(userId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      const chatServiceUrl = process.env.REACT_APP_CHAT_SERVICE_URL || 'http://localhost:3002';
+      const chatServiceUrl = process.env.REACT_APP_CHAT_SERVICE_URL || 'http://localhost:3007';
+      this.connectedInstance = chatServiceUrl;
       
       this.socket = io(`${chatServiceUrl}/chat`, {
         query: { userId },
@@ -29,7 +32,7 @@ class WebSocketService {
       });
 
       this.socket.on('connect', () => {
-        console.log('Connected to chat service');
+        console.log(`Connected to chat service: ${chatServiceUrl}`);
         this.isConnected = true;
         resolve();
       });
@@ -51,7 +54,12 @@ class WebSocketService {
       this.socket.disconnect();
       this.socket = null;
       this.isConnected = false;
+      this.connectedInstance = null;
     }
+  }
+
+  getConnectedInstance(): string | null {
+    return this.connectedInstance;
   }
 
   // Event listeners
@@ -92,6 +100,44 @@ class WebSocketService {
   getConnectionStatus(): boolean {
     return this.isConnected;
   }
+
+  // Reconnect to a different instance
+  async reconnectToInstance(userId: string, instanceUrl: string): Promise<void> {
+    console.log(`Reconnecting to instance: ${instanceUrl}`);
+    
+    // Disconnect from current instance
+    this.disconnect();
+    
+    // Connect to new instance
+    return new Promise((resolve, reject) => {
+      this.connectedInstance = instanceUrl;
+      
+      this.socket = io(`${instanceUrl}/chat`, {
+        query: { userId },
+        transports: ['websocket', 'polling'],
+      });
+
+      this.socket.on('connect', () => {
+        console.log(`Reconnected to chat service: ${instanceUrl}`);
+        this.isConnected = true;
+        resolve();
+      });
+
+      this.socket.on('disconnect', () => {
+        console.log('Disconnected from chat service');
+        this.isConnected = false;
+      });
+
+      this.socket.on('connect_error', (error) => {
+        console.error('Connection error:', error);
+        reject(error);
+      });
+    });
+  }
 }
 
 export const webSocketService = new WebSocketService();
+
+
+
+// I1 -> chatId : [participantIds] <- consume

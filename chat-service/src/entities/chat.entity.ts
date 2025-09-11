@@ -1,6 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Message } from './message.entity';
-import { User } from './user.entity';
 
 @Entity('chats')
 export class Chat {
@@ -13,19 +12,14 @@ export class Chat {
   @Column({ nullable: true })
   description?: string;
 
-  @Column({ default: 'public' })
+  @Column({ default: 'group' })
   type: 'public' | 'private' | 'group';
 
   @Column({ default: true })
   isActive: boolean;
 
-  @ManyToMany(() => User, user => user.chats)
-  @JoinTable({
-    name: 'chat_participants',
-    joinColumn: { name: 'chatId', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'userId', referencedColumnName: 'id' }
-  })
-  participants: User[];
+  @Column('text', { array: true, nullable: true })
+  participantIds: string[];
 
   @OneToMany(() => Message, message => message.chat)
   messages: Message[];

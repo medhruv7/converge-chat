@@ -19,7 +19,7 @@ async function bootstrap() {
     transform: true,
   }));
   
-  const port = process.env.PORT || 3002;
+  const port = process.env.PORT || 3007;
   await app.listen(port);
   
   console.log(`🚀 Chat Microservice running on port ${port}`);

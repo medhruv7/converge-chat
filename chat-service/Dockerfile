@@ -5,8 +5,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including devDependencies for building)
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -14,8 +14,11 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Expose port
-EXPOSE 3002
+# Remove dev dependencies after build
+RUN npm prune --production
 
-# Start the application
-CMD ["npm", "run", "start:prod"]
+# Expose port (matches docker-compose config)
+EXPOSE 3007
+
+# Start the application in development mode for Docker
+CMD ["node", "dist/main"]

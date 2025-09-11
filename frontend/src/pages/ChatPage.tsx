@@ -13,6 +13,10 @@ import {
   ListItemButton,
   Divider,
   IconButton,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import {
   Logout as LogoutIcon,
@@ -31,6 +35,15 @@ const ChatPage: React.FC = () => {
   const [selectedChat, setSelectedChat] = useState<GraphQLChat | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [wsConnected, setWsConnected] = useState(false);
+  const [realtimeChats, setRealtimeChats] = useState<GraphQLChat[]>([]);
+  const [connectedInstance, setConnectedInstance] = useState<string | null>(null);
+  const [isReconnecting, setIsReconnecting] = useState(false);
+  
+  // Available chat service instances
+  const availableInstances = [
+    { label: 'Instance 1 (Port 3007)', url: 'http://localhost:3007' },
+    { label: 'Instance 2 (Port 3009)', url: 'http://localhost:3009' },
+  ];
 
   const { data: chatsData, loading: chatsLoading, error: chatsError, refetch } = useGetUserChatsQuery({
     variables: { userId: user?.id || '' },
@@ -48,16 +61,38 @@ const ChatPage: React.FC = () => {
       try {
         await webSocketService.connect(user.id);
         setWsConnected(true);
+        setConnectedInstance(webSocketService.getConnectedInstance());
+        
+        // Set up WebSocket event listeners
+        const handleNewChat = (data: { chat: GraphQLChat }) => {
+          console.log('Received new chat:', data.chat);
+          setRealtimeChats(prev => {
+            // Check if chat already exists to avoid duplicates
+            const exists = prev.some(chat => chat.id === data.chat.id);
+            if (exists) return prev;
+            return [...prev, data.chat];
+          });
+        };
+
+        webSocketService.on('chat_created', handleNewChat);
+
+        // Cleanup function for WebSocket listeners
+        return () => {
+          webSocketService.off('chat_created', handleNewChat);
+        };
       } catch (error) {
         console.error('Failed to connect to WebSocket:', error);
         setWsConnected(false);
       }
     };
 
-    connectWebSocket();
+    const cleanupWebSocket = connectWebSocket();
 
     // Cleanup on unmount
     return () => {
+      if (cleanupWebSocket) {
+        cleanupWebSocket.then(cleanup => cleanup && cleanup());
+      }
       webSocketService.disconnect();
     };
   }, [user, navigate]);
@@ -76,6 +111,57 @@ const ChatPage: React.FC = () => {
     setShowCreateDialog(false);
     refetch();
   };
+
+  const handleInstanceChange = async (instanceUrl: string) => {
+    if (!user || instanceUrl === connectedInstance) return;
+    
+    setIsReconnecting(true);
+    setWsConnected(false);
+    
+    try {
+      await webSocketService.reconnectToInstance(user.id, instanceUrl);
+      setConnectedInstance(instanceUrl);
+      setWsConnected(true);
+      
+      // Re-setup WebSocket event listeners
+      const handleNewChat = (data: { chat: GraphQLChat }) => {
+        console.log('Received new chat:', data.chat);
+        setRealtimeChats(prev => {
+          const exists = prev.some(chat => chat.id === data.chat.id);
+          if (exists) return prev;
+          return [...prev, data.chat];
+        });
+      };
+
+      webSocketService.on('chat_created', handleNewChat);
+      
+      console.log(`Successfully switched to instance: ${instanceUrl}`);
+    } catch (error) {
+      console.error('Failed to switch instance:', error);
+      setWsConnected(false);
+    } finally {
+      setIsReconnecting(false);
+    }
+  };
+
+  // Combine fetched chats and real-time chats, removing duplicates
+  const allChats = React.useMemo(() => {
+    const fetchedChats = chatsData?.userChats || [];
+    const combinedChats = [...fetchedChats];
+    
+    // Add real-time chats that aren't already in the fetched list
+    realtimeChats.forEach(realtimeChat => {
+      const exists = fetchedChats.some(chat => chat.id === realtimeChat.id);
+      if (!exists) {
+        combinedChats.push(realtimeChat);
+      }
+    });
+    
+    // Sort by updatedAt, most recent first
+    return combinedChats.sort((a, b) => 
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+  }, [chatsData?.userChats, realtimeChats]);
 
   if (!user) {
     return null;
@@ -117,6 +203,39 @@ const ChatPage: React.FC = () => {
                 {user.firstName} {user.lastName}
               </Typography>
             </Box>
+            {/* Instance Selector */}
+            <FormControl size="small" sx={{ minWidth: 180 }}>
+              <InputLabel>Chat Instance</InputLabel>
+              <Select
+                value={connectedInstance || ''}
+                onChange={(e) => handleInstanceChange(e.target.value)}
+                label="Chat Instance"
+                disabled={isReconnecting}
+              >
+                {availableInstances.map((instance) => (
+                  <MenuItem key={instance.url} value={instance.url}>
+                    {instance.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            {connectedInstance && (
+              <Box sx={{ 
+                px: 2, 
+                py: 0.5, 
+                borderRadius: 1, 
+                backgroundColor: wsConnected ? 'success.light' : 'warning.light', 
+                color: wsConnected ? 'success.contrastText' : 'warning.contrastText' 
+              }}>
+                <Typography variant="caption" sx={{ fontWeight: 'medium' }}>
+                  {isReconnecting ? 'Reconnecting...' : 
+                   wsConnected ? `Connected: ${connectedInstance.replace('http://localhost:', 'Port ')}` :
+                   'Disconnected'
+                  }
+                </Typography>
+              </Box>
+            )}
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {wsConnected ? (
@@ -172,9 +291,9 @@ const ChatPage: React.FC = () => {
           </Box>
 
           <Box sx={{ flex: 1, overflow: 'auto' }}>
-            {chatsData?.userChats && chatsData.userChats.length > 0 ? (
+            {allChats && allChats.length > 0 ? (
               <List>
-                {chatsData.userChats.map((chat, index) => (
+                {allChats.map((chat, index) => (
                   <React.Fragment key={chat.id}>
                     <ListItem disablePadding>
                       <ListItemButton
@@ -183,11 +302,11 @@ const ChatPage: React.FC = () => {
                       >
                         <ListItemText
                           primary={chat.name}
-                          secondary={`${chat.participants.length} participants`}
+                          secondary={`${chat.participantIds?.length || 0} participants`}
                         />
                       </ListItemButton>
                     </ListItem>
-                    {index < chatsData.userChats.length - 1 && <Divider />}
+                    {index < allChats.length - 1 && <Divider />}
                   </React.Fragment>
                 ))}
               </List>

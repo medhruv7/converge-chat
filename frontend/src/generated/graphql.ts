@@ -26,7 +26,7 @@ export type Chat = {
   id: Scalars['ID']['output'];
   messages: Array<Message>;
   name: Scalars['String']['output'];
-  participants: Array<User>;
+  participantIds: Array<Scalars['String']['output']>;
   type: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
 };
@@ -57,7 +57,7 @@ export type Message = {
   content: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
-  sender?: Maybe<User>;
+  senderId: Scalars['String']['output'];
   sequenceNumber: Scalars['Float']['output'];
   updatedAt: Scalars['DateTime']['output'];
 };
@@ -132,6 +132,7 @@ export type QueryChatMessagesArgs = {
 export type QueryRecentMessagesArgs = {
   chatId: Scalars['ID']['input'];
   limit?: Scalars['Float']['input'];
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -192,21 +193,21 @@ export type CreateChatMutationVariables = Exact<{
 }>;
 
 
-export type CreateChatMutation = { __typename?: 'Mutation', createChat: { __typename?: 'Chat', id: string, name: string, description?: string | null, createdAt: any, updatedAt: any, participants: Array<{ __typename?: 'User', id: string, email: string, firstName: string, lastName: string, phoneNumber: string, isActive: boolean, createdAt: any, updatedAt: any }> } };
+export type CreateChatMutation = { __typename?: 'Mutation', createChat: { __typename?: 'Chat', id: string, name: string, description?: string | null, participantIds: Array<string>, createdAt: any, updatedAt: any } };
 
 export type JoinChatMutationVariables = Exact<{
   input: JoinChatInput;
 }>;
 
 
-export type JoinChatMutation = { __typename?: 'Mutation', joinChat: { __typename?: 'Chat', id: string, name: string, description?: string | null, createdAt: any, updatedAt: any, participants: Array<{ __typename?: 'User', id: string, email: string, firstName: string, lastName: string, phoneNumber: string, isActive: boolean, createdAt: any, updatedAt: any }> } };
+export type JoinChatMutation = { __typename?: 'Mutation', joinChat: { __typename?: 'Chat', id: string, name: string, description?: string | null, participantIds: Array<string>, createdAt: any, updatedAt: any } };
 
 export type SendMessageMutationVariables = Exact<{
   input: SendMessageInput;
 }>;
 
 
-export type SendMessageMutation = { __typename?: 'Mutation', sendMessage: { __typename?: 'Message', id: string, content: string, chatId: string, sequenceNumber: number, createdAt: any, updatedAt: any, sender?: { __typename?: 'User', id: string, firstName: string, lastName: string } | null } };
+export type SendMessageMutation = { __typename?: 'Mutation', sendMessage: { __typename?: 'Message', id: string, content: string, senderId: string, chatId: string, sequenceNumber: number, createdAt: any, updatedAt: any } };
 
 export type GetUsersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -230,7 +231,7 @@ export type GetUserChatsQueryVariables = Exact<{
 }>;
 
 
-export type GetUserChatsQuery = { __typename?: 'Query', userChats: Array<{ __typename?: 'Chat', id: string, name: string, description?: string | null, type: string, createdAt: any, updatedAt: any, participants: Array<{ __typename?: 'User', id: string, email: string, firstName: string, lastName: string, phoneNumber: string, isActive: boolean, createdAt: any, updatedAt: any }>, messages: Array<{ __typename?: 'Message', id: string, content: string, chatId: string, sequenceNumber: number, createdAt: any, updatedAt: any, sender?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, phoneNumber: string, isActive: boolean, createdAt: any, updatedAt: any } | null }> }> };
+export type GetUserChatsQuery = { __typename?: 'Query', userChats: Array<{ __typename?: 'Chat', id: string, name: string, description?: string | null, type: string, participantIds: Array<string>, createdAt: any, updatedAt: any, messages: Array<{ __typename?: 'Message', id: string, content: string, senderId: string, chatId: string, sequenceNumber: number, createdAt: any, updatedAt: any }> }> };
 
 export type GetChatQueryVariables = Exact<{
   chatId: Scalars['ID']['input'];
@@ -238,7 +239,7 @@ export type GetChatQueryVariables = Exact<{
 }>;
 
 
-export type GetChatQuery = { __typename?: 'Query', chat?: { __typename?: 'Chat', id: string, name: string, description?: string | null, createdAt: any, updatedAt: any, participants: Array<{ __typename?: 'User', id: string, email: string, firstName: string, lastName: string, phoneNumber: string, isActive: boolean, createdAt: any, updatedAt: any }>, messages: Array<{ __typename?: 'Message', id: string, content: string, chatId: string, sequenceNumber: number, createdAt: any, updatedAt: any, sender?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, phoneNumber: string, isActive: boolean, createdAt: any, updatedAt: any } | null }> } | null };
+export type GetChatQuery = { __typename?: 'Query', chat?: { __typename?: 'Chat', id: string, name: string, description?: string | null, participantIds: Array<string>, createdAt: any, updatedAt: any, messages: Array<{ __typename?: 'Message', id: string, content: string, senderId: string, chatId: string, sequenceNumber: number, createdAt: any, updatedAt: any }> } | null };
 
 export type GetChatMessagesQueryVariables = Exact<{
   chatId: Scalars['ID']['input'];
@@ -248,22 +249,23 @@ export type GetChatMessagesQueryVariables = Exact<{
 }>;
 
 
-export type GetChatMessagesQuery = { __typename?: 'Query', chatMessages: Array<{ __typename?: 'Message', id: string, content: string, chatId: string, sequenceNumber: number, createdAt: any, updatedAt: any, sender?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, phoneNumber: string, isActive: boolean, createdAt: any, updatedAt: any } | null }> };
+export type GetChatMessagesQuery = { __typename?: 'Query', chatMessages: Array<{ __typename?: 'Message', id: string, content: string, senderId: string, chatId: string, sequenceNumber: number, createdAt: any, updatedAt: any }> };
 
 export type GetRecentMessagesQueryVariables = Exact<{
   chatId: Scalars['ID']['input'];
+  userId: Scalars['ID']['input'];
   limit?: InputMaybe<Scalars['Float']['input']>;
 }>;
 
 
-export type GetRecentMessagesQuery = { __typename?: 'Query', recentMessages: Array<{ __typename?: 'Message', id: string, content: string, chatId: string, sequenceNumber: number, createdAt: any, updatedAt: any, sender?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, phoneNumber: string, isActive: boolean, createdAt: any, updatedAt: any } | null }> };
+export type GetRecentMessagesQuery = { __typename?: 'Query', recentMessages: Array<{ __typename?: 'Message', id: string, content: string, senderId: string, chatId: string, sequenceNumber: number, createdAt: any, updatedAt: any }> };
 
 export type NewMessageSubscriptionVariables = Exact<{
   chatId: Scalars['ID']['input'];
 }>;
 
 
-export type NewMessageSubscription = { __typename?: 'Subscription', newMessage: { __typename?: 'Message', id: string, content: string, chatId: string, sequenceNumber: number, createdAt: any, updatedAt: any, sender?: { __typename?: 'User', id: string, firstName: string, lastName: string } | null } };
+export type NewMessageSubscription = { __typename?: 'Subscription', newMessage: { __typename?: 'Message', id: string, content: string, senderId: string, chatId: string, sequenceNumber: number, createdAt: any, updatedAt: any } };
 
 
 export const CreateUserDocument = gql`
@@ -312,16 +314,7 @@ export const CreateChatDocument = gql`
     id
     name
     description
-    participants {
-      id
-      email
-      firstName
-      lastName
-      phoneNumber
-      isActive
-      createdAt
-      updatedAt
-    }
+    participantIds
     createdAt
     updatedAt
   }
@@ -359,16 +352,7 @@ export const JoinChatDocument = gql`
     id
     name
     description
-    participants {
-      id
-      email
-      firstName
-      lastName
-      phoneNumber
-      isActive
-      createdAt
-      updatedAt
-    }
+    participantIds
     createdAt
     updatedAt
   }
@@ -405,11 +389,7 @@ export const SendMessageDocument = gql`
   sendMessage(input: $input) {
     id
     content
-    sender {
-      id
-      firstName
-      lastName
-    }
+    senderId
     chatId
     sequenceNumber
     createdAt
@@ -598,29 +578,11 @@ export const GetUserChatsDocument = gql`
     name
     description
     type
-    participants {
-      id
-      email
-      firstName
-      lastName
-      phoneNumber
-      isActive
-      createdAt
-      updatedAt
-    }
+    participantIds
     messages {
       id
       content
-      sender {
-        id
-        email
-        firstName
-        lastName
-        phoneNumber
-        isActive
-        createdAt
-        updatedAt
-      }
+      senderId
       chatId
       sequenceNumber
       createdAt
@@ -673,29 +635,11 @@ export const GetChatDocument = gql`
     id
     name
     description
-    participants {
-      id
-      email
-      firstName
-      lastName
-      phoneNumber
-      isActive
-      createdAt
-      updatedAt
-    }
+    participantIds
     messages {
       id
       content
-      sender {
-        id
-        email
-        firstName
-        lastName
-        phoneNumber
-        isActive
-        createdAt
-        updatedAt
-      }
+      senderId
       chatId
       sequenceNumber
       createdAt
@@ -748,16 +692,7 @@ export const GetChatMessagesDocument = gql`
   chatMessages(chatId: $chatId, userId: $userId, limit: $limit, offset: $offset) {
     id
     content
-    sender {
-      id
-      email
-      firstName
-      lastName
-      phoneNumber
-      isActive
-      createdAt
-      updatedAt
-    }
+    senderId
     chatId
     sequenceNumber
     createdAt
@@ -805,20 +740,11 @@ export function refetchGetChatMessagesQuery(variables: GetChatMessagesQueryVaria
       return { query: GetChatMessagesDocument, variables: variables }
     }
 export const GetRecentMessagesDocument = gql`
-    query GetRecentMessages($chatId: ID!, $limit: Float) {
-  recentMessages(chatId: $chatId, limit: $limit) {
+    query GetRecentMessages($chatId: ID!, $userId: ID!, $limit: Float) {
+  recentMessages(chatId: $chatId, userId: $userId, limit: $limit) {
     id
     content
-    sender {
-      id
-      email
-      firstName
-      lastName
-      phoneNumber
-      isActive
-      createdAt
-      updatedAt
-    }
+    senderId
     chatId
     sequenceNumber
     createdAt
@@ -840,6 +766,7 @@ export const GetRecentMessagesDocument = gql`
  * const { data, loading, error } = useGetRecentMessagesQuery({
  *   variables: {
  *      chatId: // value for 'chatId'
+ *      userId: // value for 'userId'
  *      limit: // value for 'limit'
  *   },
  * });
@@ -868,11 +795,7 @@ export const NewMessageDocument = gql`
   newMessage(chatId: $chatId) {
     id
     content
-    sender {
-      id
-      firstName
-      lastName
-    }
+    senderId
     chatId
     sequenceNumber
     createdAt

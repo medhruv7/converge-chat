@@ -64,8 +64,9 @@ export class ChatController {
   @Get(':chatId/messages/recent')
   async getRecentMessages(
     @Param('chatId') chatId: string,
+    @Query('userId') userId: string,
     @Query('limit') limit: number = 50,
-  ): Promise<any[]> {
-    return await this.chatService.getRecentMessages(chatId, limit);
+  ): Promise<Message[]> {
+    return await this.chatService.getMessages(chatId, userId, limit, 0);
   }
 }

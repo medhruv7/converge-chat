@@ -1,7 +1,7 @@
 overwrite: true
 schema:
-  - "http://localhost:3000/graphql"  # User service
-  - "http://localhost:3002/graphql"  # Chat service
+  - "http://localhost:3006/graphql"  # User service
+  - "http://localhost:3007/graphql"  # Chat service
 documents: "src/**/*.graphql"
 generates:
   src/generated/graphql.ts:

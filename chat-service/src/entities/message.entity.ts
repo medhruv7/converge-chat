@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { Chat } from './chat.entity';
-import { User } from './user.entity';
 
 @Entity('messages')
 @Index(['chatId', 'createdAt']) // Index for efficient message ordering
@@ -33,14 +32,10 @@ export class Message {
   @JoinColumn({ name: 'chatId' })
   chat: Chat;
 
-  @Column()
+  @Column('uuid')
   chatId: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'senderId' })
-  sender: User;
-
-  @Column()
+  @Column('uuid')
   senderId: string;
 
   @CreateDateColumn()

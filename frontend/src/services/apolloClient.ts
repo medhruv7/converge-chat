@@ -21,21 +21,26 @@ const authLink = setContext((_, { headers }) => {
 const userServiceLink = authLink.concat(createHttpLink({
   uri: process.env.REACT_APP_USER_SERVICE_URL 
     ? `${process.env.REACT_APP_USER_SERVICE_URL}/graphql`
-    : 'http://localhost:3000/graphql',
+    : 'http://localhost:3006/graphql',
 }));
 
-// HTTP link for chat service
-const chatServiceLink = authLink.concat(createHttpLink({
-  uri: process.env.REACT_APP_CHAT_SERVICE_URL 
-    ? `${process.env.REACT_APP_CHAT_SERVICE_URL}/graphql`
-    : 'http://localhost:3002/graphql',
-}));
+// HTTP link for chat service - dynamic based on current instance
+const createChatServiceLink = (instanceUrl?: string) => {
+  const baseUrl = instanceUrl || 
+                  process.env.REACT_APP_CHAT_SERVICE_URL || 
+                  'http://localhost:3007';
+  return authLink.concat(createHttpLink({
+    uri: `${baseUrl}/graphql`,
+  }));
+};
+
+const chatServiceLink = createChatServiceLink();
 
 // WebSocket link for subscriptions
 const wsLink = new GraphQLWsLink(createClient({
   url: process.env.REACT_APP_CHAT_SERVICE_URL 
     ? `${process.env.REACT_APP_CHAT_SERVICE_URL.replace('http', 'ws')}/graphql`
-    : 'ws://localhost:3002/graphql',
+    : 'ws://localhost:3007/graphql',
 }));
 
 // Function to determine if a query is for chat service

@@ -1,29 +1,38 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_DB: converge_users
+      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     networks:
       - converge-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Redis for pub/sub
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6381:6379"
     volumes:
       - redis_data:/data
     networks:
       - converge-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # User Microservice
   user-service:
@@ -31,30 +40,31 @@ services:
       context: ./user-service
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3006:3006"
     environment:
       NODE_ENV: development
-      PORT: 3000
+      PORT: 3006
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: postgres
       DB_PASSWORD: password
       DB_NAME: converge_users
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - converge-network
 
-  # Chat Microservice
-  chat-service:
+  # Multiple Chat Service Instances for testing cross-instance pub/sub
+  chat-service-1:
     build:
       context: ./chat-service
       dockerfile: Dockerfile
     ports:
-      - "3002:3002"
+      - "3007:3007"
     environment:
       NODE_ENV: development
-      PORT: 3002
+      PORT: 3007
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: postgres
@@ -62,11 +72,56 @@ services:
       DB_NAME: converge_chat
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      USER_SERVICE_URL: http://user-service:3000
+      USER_SERVICE_URL: http://user-service:3006
     depends_on:
-      - postgres
-      - redis
-      - user-service
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+    networks:
+      - converge-network
+
+  chat-service-2:
+    build:
+      context: ./chat-service
+      dockerfile: Dockerfile
+    ports:
+      - "3009:3007"  # Different external port, same internal port
+    environment:
+      NODE_ENV: development
+      PORT: 3007
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      DB_NAME: converge_chat
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      USER_SERVICE_URL: http://user-service:3006
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+    networks:
+      - converge-network
+
+  # Frontend React App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3008:3008"
+    depends_on:
+      user-service:
+        condition: service_started
+      chat-service-1:
+        condition: service_started
     networks:
       - converge-network
 

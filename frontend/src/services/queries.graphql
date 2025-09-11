@@ -45,29 +45,11 @@ query GetUserChats($userId: ID!) {
     name
     description
     type
-    participants {
-      id
-      email
-      firstName
-      lastName
-      phoneNumber
-      isActive
-      createdAt
-      updatedAt
-    }
+    participantIds
     messages {
       id
       content
-      sender {
-        id
-        email
-        firstName
-        lastName
-        phoneNumber
-        isActive
-        createdAt
-        updatedAt
-      }
+      senderId
       chatId
       sequenceNumber
       createdAt
@@ -83,29 +65,11 @@ query GetChat($chatId: ID!, $userId: ID!) {
     id
     name
     description
-    participants {
-      id
-      email
-      firstName
-      lastName
-      phoneNumber
-      isActive
-      createdAt
-      updatedAt
-    }
+    participantIds
     messages {
       id
       content
-      sender {
-        id
-        email
-        firstName
-        lastName
-        phoneNumber
-        isActive
-        createdAt
-        updatedAt
-      }
+      senderId
       chatId
       sequenceNumber
       createdAt
@@ -120,16 +84,7 @@ query GetChatMessages($chatId: ID!, $userId: ID!, $limit: Float, $offset: Float)
   chatMessages(chatId: $chatId, userId: $userId, limit: $limit, offset: $offset) {
     id
     content
-    sender {
-      id
-      email
-      firstName
-      lastName
-      phoneNumber
-      isActive
-      createdAt
-      updatedAt
-    }
+    senderId
     chatId
     sequenceNumber
     createdAt
@@ -137,20 +92,11 @@ query GetChatMessages($chatId: ID!, $userId: ID!, $limit: Float, $offset: Float)
   }
 }
 
-query GetRecentMessages($chatId: ID!, $limit: Float) {
-  recentMessages(chatId: $chatId, limit: $limit) {
+query GetRecentMessages($chatId: ID!, $userId: ID!, $limit: Float) {
+  recentMessages(chatId: $chatId, userId: $userId, limit: $limit) {
     id
     content
-    sender {
-      id
-      email
-      firstName
-      lastName
-      phoneNumber
-      isActive
-      createdAt
-      updatedAt
-    }
+    senderId
     chatId
     sequenceNumber
     createdAt

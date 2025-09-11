@@ -3,8 +3,8 @@
 
 import { User, Chat, Message, CreateUserInput, CreateChatInput, SendMessageInput, JoinChatInput } from '../types';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000';
-const CHAT_API_BASE_URL = process.env.REACT_APP_CHAT_API_BASE_URL || 'http://localhost:3002';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3006';
+const CHAT_API_BASE_URL = process.env.REACT_APP_CHAT_API_BASE_URL || 'http://localhost:3007';
 
 class ApiService {
   private async request<T>(url: string, options: RequestInit = {}): Promise<T> {

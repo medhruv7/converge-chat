@@ -18,16 +18,7 @@ mutation CreateChat($input: CreateChatInput!) {
     id
     name
     description
-    participants {
-      id
-      email
-      firstName
-      lastName
-      phoneNumber
-      isActive
-      createdAt
-      updatedAt
-    }
+    participantIds
     createdAt
     updatedAt
   }
@@ -38,16 +29,7 @@ mutation JoinChat($input: JoinChatInput!) {
     id
     name
     description
-    participants {
-      id
-      email
-      firstName
-      lastName
-      phoneNumber
-      isActive
-      createdAt
-      updatedAt
-    }
+    participantIds
     createdAt
     updatedAt
   }
@@ -57,11 +39,7 @@ mutation SendMessage($input: SendMessageInput!) {
   sendMessage(input: $input) {
     id
     content
-    sender {
-      id
-      firstName
-      lastName
-    }
+    senderId
     chatId
     sequenceNumber
     createdAt

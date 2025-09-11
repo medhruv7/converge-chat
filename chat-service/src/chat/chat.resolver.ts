@@ -37,9 +37,10 @@ export class ChatResolver {
   @Query(() => [Message], { name: 'recentMessages' })
   async getRecentMessages(
     @Args('chatId', { type: () => ID }) chatId: string,
+    @Args('userId', { type: () => ID }) userId: string,
     @Args('limit', { type: () => Number, defaultValue: 50 }) limit: number,
   ): Promise<Message[]> {
-    return this.chatService.getRecentMessages(chatId, limit);
+    return this.chatService.getMessages(chatId, userId, limit, 0);
   }
 
   @Mutation(() => Chat)

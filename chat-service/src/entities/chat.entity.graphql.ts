@@ -1,5 +1,4 @@
 import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { User } from './user.entity.graphql';
 import { Message } from './message.entity.graphql';
 
 @ObjectType()
@@ -16,8 +15,8 @@ export class Chat {
   @Field()
   type: string;
 
-  @Field(() => [User])
-  participants: User[];
+  @Field(() => [String])
+  participantIds: string[];
 
   @Field(() => [Message])
   messages: Message[];
